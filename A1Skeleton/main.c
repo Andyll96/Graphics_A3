@@ -51,10 +51,10 @@ static GLfloat robot_diffuse[] = { 0.243, 0.635, 0.956, 1.0 };
 static GLfloat robot_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 static GLfloat robot_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
 
-//Robot2 properties
-static GLfloat robot2_diffuse[] = { 0.960, 0.078, 0, 1.0 };
-static GLfloat robot2_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-static GLfloat robot2_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
+//hero properties
+static GLfloat hero_diffuse[] = { 0.960, 0.078, 0, 1.0 };
+static GLfloat hero_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+static GLfloat hero_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
 
 //A quad mesh object, given by the provided QuadMesh.c file
 static QuadMesh groundMesh;
@@ -77,6 +77,7 @@ void computeXPosition(float deltaMove);
 void drawBicep(void);
 void drawForearm(void);
 void drawHead(void);
+void drawWheelnAxle(void);
 
 int main(int argc, char** argv)
 {
@@ -169,6 +170,7 @@ void display(void)
 
 	//Hero
 	glPushMatrix();
+		glTranslatef(-15, 0, 0);
 		glTranslatef(heroX, 0.0, heroZ);
 		glRotatef(heroAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
@@ -361,19 +363,39 @@ void drawFoe(void)
 
 void drawHero(void) 
 {
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, robot2_ambient);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, robot2_diffuse);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, robot2_specular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, hero_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, hero_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, hero_specular);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
 	
 	glPushMatrix();
-		
-		drawAxes();
+		//local axes
+		//drawAxes();
 		glPushMatrix();
 			//Shoulder Transformations
 			//glRotatef(shoulderPitch, 0.0, 0.0, 1.0);
 			glPushMatrix();
-				glutSolidSphere(2.0, 20.0, 50);	//Base Shoulder Sphere
+				glPushMatrix();
+					glTranslated(0, 2, 0);
+					glutSolidSphere(2.0, 20.0, 50);	//Base Shoulder Sphere
+					
+				glPopMatrix();
+
+				glPushMatrix();
+					glTranslated(0, 1, 0);
+					glScalef(4, 1, 3);
+					glutSolidCube(2); //Base Body
+				glPopMatrix();
+
+				glPushMatrix();
+					glTranslatef(-2, 0, 0);
+					drawWheelnAxle();
+				glPopMatrix();
+				glPushMatrix();
+					glTranslatef(2, 0, 0);
+					drawWheelnAxle();
+				glPopMatrix();
+
 			glPopMatrix();
 
 			drawBicep();
@@ -457,6 +479,56 @@ void drawHead(void)
 		glTranslatef(11.0, 0.0, 0.0);
 		glScalef(4.0, 0.5, 3.0);
 		glutSolidCube(1.0);
+	glPopMatrix();
+}
+
+void drawWheelnAxle(void)
+{
+	glPushMatrix();
+	glTranslated(0, 1.5, 4.5);
+	glutSolidTorus(0.5, 1, 15, 10);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslated(0, 1.5, 0);
+		glutSolidCone(0.5,6.0,30,20);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslated(0, 1.4, 4.5);
+		glScalef(0.125, 2.5, 0.125);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslated(0, 1.5, 4.5);
+		glRotated(90, 0, 0, 1);
+		glScalef(0.125, 2.5, 0.125);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0, 1.5, 0);
+	glRotated(180, 0, 1, 0);
+	glutSolidCone(0.5, 6.0, 30, 20);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0, 1.4, -4.5);
+	glScalef(0.125, 2.5, 0.125);
+	glutSolidCube(1);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0, 1.5, -4.5);
+	glRotated(90, 0, 0, 1);
+	glScalef(0.125, 2.5, 0.125);
+	glutSolidCube(1);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0, 1.5, -4.5);
+	glutSolidTorus(0.5, 1, 15, 10);
 	glPopMatrix();
 }
 
