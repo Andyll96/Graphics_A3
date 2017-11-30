@@ -1,33 +1,40 @@
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 #include <stdlib.h>
 #include <gl/gl.h>
 #include <gl/glu.h>
 #include <gl/glut.h>
+#include <math.h>
 #include "Vector3D.h"
 #include "CubeMesh.h"
 #include "QuadMesh.h"
 #include "Matrix3D.h"
 
+#define PI 3.141592654
+
 //Constants
 const int vWidth = 1000;
 const int vHeight = 1000;
-const int meshSize = 32;
+const int meshSize = 40;
 
 //Camera Variables
 float Xangle = 0.0; //Xangle of rotation
 float Yangle = 0.0; //Yangle of rotation
 float lx = 0.0, ly = 0.0, lz = -1; //camera's direction
-float x = 0.0, y = 10, z = 35.0; // XZ position
-
+float x = 0.0, y = 10, z = 30.0; // XZ position
 float deltaXAngle = 0.0f;
 float deltaYAngle = 0.0f;
 float deltaMove = 0;
 float deltaXMove = 0;
 int xOrigin = -1;
 int yOrigin = -1;
+int cameraSwitch = 0;
+
+//Hero Variables
+float heroAngle = 0.0;
+float hlx = 0.0, hlz = 0.0;
+float heroX = 0.0, heroZ = 0.0;
 
 
 // Light positions
@@ -38,6 +45,16 @@ static GLfloat light_position1[] = { 6.0F, 12.0F, 0.0F, 1.0F };
 static GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 static GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 static GLfloat light_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
+
+//Robot properties
+static GLfloat robot_diffuse[] = { 0.243, 0.635, 0.956, 1.0 };
+static GLfloat robot_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+static GLfloat robot_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
+
+//Robot2 properties
+static GLfloat robot2_diffuse[] = { 0.960, 0.078, 0, 1.0 };
+static GLfloat robot2_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+static GLfloat robot2_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
 
 //A quad mesh object, given by the provided QuadMesh.c file
 static QuadMesh groundMesh;
@@ -50,11 +67,16 @@ void functionKeys(int key, int x, int y);
 void releaseKey(int key, int x, int y);
 void mouseButton(int button, int state, int x, int y);
 void mouseMove(int x, int y);
-void drawRobot(void);
-void drawRobot2(void);
+void drawFoe(void);
+void drawHero(void);
 void drawAxes(void);
 void computePosition(float deltaMove);
 void computeXPosition(float deltaMove);
+
+//drawHero helper functions
+void drawBicep(void);
+void drawForearm(void);
+void drawHead(void);
 
 int main(int argc, char** argv)
 {
@@ -75,11 +97,11 @@ int main(int argc, char** argv)
 	glutSpecialFunc(functionKeys);
 	glutIdleFunc(display);
 
-	glutIgnoreKeyRepeat(1);
 	glutSpecialUpFunc(releaseKey);
 
 	glutMouseFunc(mouseButton);
 	glutMotionFunc(mouseMove);
+
 	//Enter GLUT event processing cycle
 	glutMainLoop();
 	return 1;
@@ -116,7 +138,7 @@ void initOpenGL(int w, int h)
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);   // Nicer perspective
 
 	//Ground setup
-	Vector3D origin = NewVector3D(-16.0f, 0.0f, 16.0f); //doesn't refer to centroid, refers to one of the corners of the mesh
+	Vector3D origin = NewVector3D(-(meshSize / 2), 0.0f, (meshSize / 2)); //doesn't refer to centroid, refers to one of the corners of the mesh
 	Vector3D dir1v = NewVector3D(1.0f, 0.0f, 0.0f);
 	Vector3D dir2v = NewVector3D(0.0f, 0.0f, -1.0f);
 
@@ -125,7 +147,7 @@ void initOpenGL(int w, int h)
 	Vector3D specular = NewVector3D(0.4f, 0.04f, 0.04f);
 
 	groundMesh = NewQuadMesh(meshSize);
-	InitMeshQM(&groundMesh, meshSize, origin, 32.0, 32.0, dir1v, dir2v);
+	InitMeshQM(&groundMesh, meshSize, origin, meshSize, meshSize, dir1v, dir2v);
 	SetMaterialQM(&groundMesh, ambient, diffuse, specular, 0.2);
 }
 
@@ -140,15 +162,30 @@ void display(void)
 	if (deltaXMove)
 		computeXPosition(deltaXMove);
 
-
 	gluLookAt(x, y, z, x + lx, y + ly, z + lz, 0.0f, 1.0f, 0.0f);
 
 	//Drawing Global axes
 	drawAxes();
+
+	//Hero
 	glPushMatrix();
-	drawRobot2();
+		glTranslatef(heroX, 0.0, heroZ);
+		glRotatef(heroAngle, 0.0, 1.0, 0.0);
+		glScaled(0.7, 0.7, 0.7);
+		drawHero(0.243, 0.635, 0.956);
 	glPopMatrix();
+
+	//Foe
+	glPushMatrix();
+		glTranslated(15.0, 0.0, 0.0);
+		glRotated(180.0, 0.0, 1.0, 0.0);
+		glScaled(0.7, 0.7, 0.7);
+		//drawFoe();
+	glPopMatrix();
+	
+	//Draw Mesh
 	DrawMeshQM(&groundMesh, meshSize);
+	
 	glutSwapBuffers(); //Double buffering, swap buffers
 }
 
@@ -173,6 +210,40 @@ void keyboard(unsigned char key, int mx, int my)
 	case 27:
 		exit(0);
 		break;
+	case 'w': //up
+		heroX += hlx * 0.1;
+		heroZ += hlz * 0.1;
+		break;
+	case 's': //down
+		heroX -= hlx * 0.1;
+		heroZ -= hlz * 0.1;
+		break;
+	case 'a': //left
+		heroAngle += 2.0;
+		hlx = cos((heroAngle)*(PI/180));
+		hlz = -sin((heroAngle)*(PI/180));
+		printf("heroAngle : %f\n", heroAngle);
+		printf("calculated: hlx = %f hlz = %f\n", hlx, hlz);
+		//printf("actual: hlx = %f hlz = %f\n", cos(heroAngle), sin(heroAngle));
+
+		break;
+	case 'd': //right
+		heroAngle -= 2.0;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		printf("hlx = %f hlz = %f\n", hlx, hlz);
+		break;
+
+	case 'c':
+		if (cameraSwitch == 0) {
+			cameraSwitch = 1;
+			printf("camera 1");
+		}
+		else if (cameraSwitch == 1) {
+			cameraSwitch = 0;
+			printf("camera 0");
+		}
+
 	}
 
 	glutPostRedisplay();   // Trigger a window redisplay
@@ -215,7 +286,6 @@ void releaseKey(int key, int x, int y)
 	case GLUT_KEY_LEFT:
 	case GLUT_KEY_RIGHT:
 		deltaXMove = 0;
-		printf("release");
 		break;
 	}
 }
@@ -248,7 +318,7 @@ void mouseMove(int x, int y)
 	}
 }
 
-void drawRobot(void)
+void drawFoe(void)
 {
 	glPushMatrix();
 		//glRotatef(shoulderYaw, 0.0, 1.0, 0.0);
@@ -258,7 +328,7 @@ void drawRobot(void)
 			//Base Shoulder Sphere
 			glPushMatrix();
 				glutSolidSphere(2.0, 20.0, 50);
-				drawAxes();
+				//drawAxes();
 			glPopMatrix();
 			glPushMatrix();
 				glTranslatef(0.0, 7.0, 0.0);
@@ -272,7 +342,7 @@ void drawRobot(void)
 			//Elbow Sphere
 			glPushMatrix();
 				glutSolidSphere(1.0, 20, 50);
-				drawAxes();
+				//drawAxes();
 			glPopMatrix();
 			glPushMatrix();
 				glTranslatef(5.0, 0.0, 0.0);
@@ -289,18 +359,52 @@ void drawRobot(void)
 	glPopMatrix();
 }
 
-void drawRobot2(void) 
+void drawHero(void) 
 {
-	glPushMatrix(); //1
-		glPushMatrix(); //2
-			glScaled(4.0, 1.0, 2.0);
-			glutSolidCube(2.0);
-		glPopMatrix(); //2
-	glPopMatrix();//1
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, robot2_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, robot2_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, robot2_specular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
+	
+	glPushMatrix();
+		
+		drawAxes();
+		glPushMatrix();
+			//Shoulder Transformations
+			//glRotatef(shoulderPitch, 0.0, 0.0, 1.0);
+			glPushMatrix();
+				glutSolidSphere(2.0, 20.0, 50);	//Base Shoulder Sphere
+			glPopMatrix();
+
+			drawBicep();
+
+			//Elbow Transformations
+			glTranslatef(0.0, 12.0, 0.0);
+			//glRotatef(elbowPitch, 0.0, 0.0, 1.0);
+			glPushMatrix(); //Elbow Sphere
+				glutSolidSphere(1.0, 20, 50); 
+			glPopMatrix();
+
+			drawForearm();
+
+			drawHead();
+
+		glPopMatrix();
+	glPopMatrix();
+
 }
 
 void drawAxes(void)
 {
+	static GLfloat axes_diffuse[] = { 0.0, 0.0, 0.0, 1.0 };
+	static GLfloat axes_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+	static GLfloat axes_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, axes_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, axes_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, axes_specular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
+
 	glDisable(GL_TEXTURE_2D);
 	glLineWidth(2);
 	glBegin(GL_LINES);
@@ -318,12 +422,42 @@ void computePosition(float deltaMove)
 {
 	x += deltaMove * lx * 0.1f;
 	z += deltaMove * lz * 0.1f;
-	y += deltaMove * ly * 0.1f;
+	if (y >= 0)
+		y += deltaMove * ly * 0.1f;
+	else
+		y = 0;
 }
 
 void computeXPosition(float deltaMove)
 {
 	x += deltaXMove * 0.1f;
+}
+
+void drawBicep(void)
+{
+	glPushMatrix();
+		glTranslatef(0.0, 7.0, 0.0);
+		glScalef(1.0, 10.0, 1.0);
+		glutSolidCube(1.0);
+	glPopMatrix();
+}
+
+void drawForearm(void)
+{
+	glPushMatrix();
+		glTranslatef(5.0, 0.0, 0.0);
+		glScalef(10.0, 1.0, 1.0);
+		glutSolidCube(1.0);
+	glPopMatrix();
+}
+
+void drawHead(void)
+{
+	glPushMatrix();
+		glTranslatef(11.0, 0.0, 0.0);
+		glScalef(4.0, 0.5, 3.0);
+		glutSolidCube(1.0);
+	glPopMatrix();
 }
 
 
