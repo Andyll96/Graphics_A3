@@ -35,7 +35,7 @@ int cameraSwitch = 0;
 float heroAngle = 0.0;
 float hlx = 0.0, hlz = 0.0;
 float heroX = 0.0, heroZ = 0.0;
-
+float speed = 0.1;
 
 // Light positions
 static GLfloat light_position0[] = { -6.0F, 12.0F, 0.0F, 1.0F };
@@ -213,12 +213,30 @@ void keyboard(unsigned char key, int mx, int my)
 		exit(0);
 		break;
 	case 'w': //up
-		heroX += hlx * 0.1;
-		heroZ += hlz * 0.1;
+		if (hlx == 0) {
+			heroX += speed;
+		}
+		else if (hlz == 0) {
+			heroZ += speed;
+		}
+		else {
+			heroX += hlx * speed;
+			heroZ += hlz * speed;
+		}
+		printf("up");
 		break;
 	case 's': //down
-		heroX -= hlx * 0.1;
-		heroZ -= hlz * 0.1;
+		if (hlx == 0) {
+			heroX -= speed;
+		}
+		else if (hlz == 0) {
+			heroZ -= speed;
+		}
+		else {
+			heroX -= hlx * speed;
+			heroZ -= hlz * speed;
+		}
+		printf("down");
 		break;
 	case 'a': //left
 		heroAngle += 2.0;
