@@ -284,9 +284,9 @@ void ComputeNormalsQM(QuadMesh* qm)
 
 void ComputeGauss(QuadMesh* qm, float height, float width) {
 	
-	//for (int i = 0; i < 3; i++)
-	//{
-		Vector3D currentHole = qm->holes[0];
+	for (int i = 0; i < 3; i++)
+	{
+		Vector3D currentHole = qm->holes[i];
 		float holeX = currentHole.x;
 		float holeZ = currentHole.z;
 		printf("currentHole(x, z): (%f, %f)\n", holeX, holeZ);
@@ -309,9 +309,9 @@ void ComputeGauss(QuadMesh* qm, float height, float width) {
 			else
 			{
 				newY = height * pow(E, (-width *pow(distance, 2)));
+				qm->vertices[j].position.y = newY;
 			}
-			qm->vertices[j].position.y = newY;
-		//}
+		}
 	}
 	
 }
