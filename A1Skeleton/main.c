@@ -12,6 +12,7 @@
 #include "Matrix3D.h"
 
 #define PI 3.141592654
+#define E 2.71828
 
 //Constants
 const int vWidth = 1000;
@@ -31,11 +32,15 @@ int xOrigin = -1;
 int yOrigin = -1;
 int cameraSwitch = 0;
 
+//Camera2 Variables
+float cx = 0.0, cy = 0.0, cz = 0.0;
+
 //Hero Variables
 float heroAngle = 0.0;
 float hlx = 0.0, hlz = 0.0;
 float heroX = 0.0, heroZ = 0.0;
 float speed = 0.1;
+
 
 // Light positions
 static GLfloat light_position0[] = { -6.0F, 12.0F, 0.0F, 1.0F };
@@ -46,10 +51,10 @@ static GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 static GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 static GLfloat light_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
 
-//Robot properties
-static GLfloat robot_diffuse[] = { 0.243, 0.635, 0.956, 1.0 };
-static GLfloat robot_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-static GLfloat robot_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
+//Foe properties
+static GLfloat foe_diffuse[] = { 0.243, 0.635, 0.956, 1.0 };
+static GLfloat foe_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+static GLfloat foe_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
 
 //hero properties
 static GLfloat hero_diffuse[] = { 0.960, 0.078, 0, 1.0 };
@@ -58,6 +63,9 @@ static GLfloat hero_ambient[] = { 0.2F, 0.2F, 0.2F, 1.0F };
 
 //A quad mesh object, given by the provided QuadMesh.c file
 static QuadMesh groundMesh;
+
+//list of hole positions
+Vector3D holes[3];
 
 void initOpenGL(int w, int h);
 void display(void);
@@ -70,14 +78,24 @@ void mouseMove(int x, int y);
 void drawFoe(void);
 void drawHero(void);
 void drawAxes(void);
+
+//global camera functions
 void computePosition(float deltaMove);
 void computeXPosition(float deltaMove);
+
+//player camera function
+void computePosition2();
 
 //drawHero helper functions
 void drawBicep(void);
 void drawForearm(void);
 void drawHead(void);
 void drawWheelnAxle(void);
+
+void printInstructions(void);
+
+float gaussianFunc(Vector3D hole, int k, int b, int a);
+
 
 int main(int argc, char** argv)
 {
@@ -88,6 +106,7 @@ int main(int argc, char** argv)
 	glutInitWindowSize(vWidth, vHeight);
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - 1000) / 2, 0);
 	glutCreateWindow("Assignment 3");
+
 
 	initOpenGL(vWidth, vHeight);
 
@@ -147,8 +166,15 @@ void initOpenGL(int w, int h)
 	Vector3D diffuse = NewVector3D(0.176f, 0.823f, 0.274f);
 	Vector3D specular = NewVector3D(0.4f, 0.04f, 0.04f);
 
+	//List of holes
+	holes[0] = NewVector3D(10, 0, 10);
+	holes[1] = NewVector3D(-10, 0, 5);
+	holes[2] = NewVector3D(-15, 0, -15);
+
 	groundMesh = NewQuadMesh(meshSize);
 	InitMeshQM(&groundMesh, meshSize, origin, meshSize, meshSize, dir1v, dir2v);
+	memcpy(groundMesh.holes, holes,sizeof(groundMesh.holes));
+	ComputeGauss(&groundMesh,-2.0f,6.0f);
 	SetMaterialQM(&groundMesh, ambient, diffuse, specular, 0.2);
 }
 
@@ -157,21 +183,25 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-
+	
 	if (deltaMove)
 		computePosition(deltaMove);
 	if (deltaXMove)
 		computeXPosition(deltaXMove);
-
-	gluLookAt(x, y, z, x + lx, y + ly, z + lz, 0.0f, 1.0f, 0.0f);
+	
+	if(cameraSwitch == 0)
+		gluLookAt(x, y, z, x + lx, y + ly, z + lz, 0.0f, 1.0f, 0.0f);
+	if (cameraSwitch == 1) {
+		computePosition2();
+		gluLookAt(cx - 15, 20, cz, heroX- 15, 0, heroZ, 0, 1, 0);
+	}
 
 	//Drawing Global axes
 	drawAxes();
 
 	//Hero
 	glPushMatrix();
-		glTranslatef(-15, 0, 0);
-		glTranslatef(heroX, 0.0, heroZ);
+		glTranslatef(heroX - 15, 0.0, heroZ);
 		glRotatef(heroAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
 		drawHero(0.243, 0.635, 0.956);
@@ -182,12 +212,11 @@ void display(void)
 		glTranslated(15.0, 0.0, 0.0);
 		glRotated(180.0, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
-		//drawFoe();
+		drawFoe();
 	glPopMatrix();
 	
 	//Draw Mesh
 	DrawMeshQM(&groundMesh, meshSize);
-	
 	glutSwapBuffers(); //Double buffering, swap buffers
 }
 
@@ -199,7 +228,7 @@ void reshape(int w, int h)
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60.0, (GLdouble)w / h, 0.2, 40.0);
+	gluPerspective(60.0, (GLdouble)w / h, 0.2, 100.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -236,14 +265,16 @@ void keyboard(unsigned char key, int mx, int my)
 			heroX -= hlx * speed;
 			heroZ -= hlz * speed;
 		}
+		
 		printf("down");
 		break;
 	case 'a': //left
 		heroAngle += 2.0;
 		hlx = cos((heroAngle)*(PI/180));
 		hlz = -sin((heroAngle)*(PI/180));
+
 		printf("heroAngle : %f\n", heroAngle);
-		printf("calculated: hlx = %f hlz = %f\n", hlx, hlz);
+		//printf("calculated: hlx = %f hlz = %f\n", hlx, hlz);
 		//printf("actual: hlx = %f hlz = %f\n", cos(heroAngle), sin(heroAngle));
 
 		break;
@@ -251,7 +282,9 @@ void keyboard(unsigned char key, int mx, int my)
 		heroAngle -= 2.0;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
-		printf("hlx = %f hlz = %f\n", hlx, hlz);
+
+
+		//printf("hlx = %f hlz = %f\n", hlx, hlz);
 		break;
 
 	case 'c':
@@ -263,7 +296,9 @@ void keyboard(unsigned char key, int mx, int my)
 			cameraSwitch = 0;
 			printf("camera 0");
 		}
-
+		break;
+	case 'f':
+		glutFullScreen();
 	}
 
 	glutPostRedisplay();   // Trigger a window redisplay
@@ -276,7 +311,7 @@ void functionKeys(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_F1: //Help
-		printf("HELP");
+		printInstructions();
 		break;
 	case GLUT_KEY_DOWN:
 		deltaMove = -0.5f;
@@ -340,6 +375,12 @@ void mouseMove(int x, int y)
 
 void drawFoe(void)
 {
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, foe_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, foe_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, foe_specular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
+
 	glPushMatrix();
 		//glRotatef(shoulderYaw, 0.0, 1.0, 0.0);
 		glPushMatrix();
@@ -473,6 +514,13 @@ void computeXPosition(float deltaMove)
 	x += deltaXMove * 0.1f;
 }
 
+void computePosition2()
+{
+	float radius = 15;
+	cx = heroX + (-radius * hlx);
+	cz = heroZ + (radius * -hlz);
+}
+
 void drawBicep(void)
 {
 	glPushMatrix();
@@ -549,6 +597,39 @@ void drawWheelnAxle(void)
 	glutSolidTorus(0.5, 1, 15, 10);
 	glPopMatrix();
 }
+
+void printInstructions(void)
+{
+	printf("\n\nINSTRUCTIONS\nYou are a Battle Robot, destroy your foe, fight to the death.\n");
+	printf("\t-'f' key: Enter Fullscreen Mode\n");
+	printf("\t-'esc' key: Exit the Game\n\n");
+	printf("CAMERA CONTROLS: There are three available cameras, that you can switch between using the 'C' key\n");
+	printf("\t1. Gloabl Camera: enables you to move camera freely about the game\n");
+	printf("\t\t-Use mouse to Pan and Tilt camera in place\n");
+	printf("\t\t-Use the UP, DOWN, LEFT, RIGHT arrow keys to translate camera around the world\n");
+	printf("\t2. Third Person Camera: This Camera follows the robot\n");
+	printf("\t3. FPV Camera: This Camera provides a first person view in the robots perspective\n");
+	printf("ROBOT CONTROLS\n");
+	printf("\t-'w' key: moves robot forward\n");
+	printf("\t-'s' key: moves robot backwards\n");
+	printf("\t-'a' key: rotates robot counter clockwise\n");
+	printf("\t-'d' key: rotates robot clockwise\n");
+}
+
+//k = hole number, b = height, a = width of hole, r = distance from hole
+float gaussianFunc(Vector3D hole, int holeNum, int height, int width)
+{
+	float y = 0.0;
+	float distance = 0.0;
+	float dx =0;
+	float dy=0;
+
+	distance = sqrt(pow(dx, 2) + pow(dy, 2));
+	y = height * pow(E, (-width *pow(distance, 2)));
+	return y;
+}
+
+
 
 
 

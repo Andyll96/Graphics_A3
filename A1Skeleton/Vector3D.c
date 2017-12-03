@@ -28,6 +28,11 @@ void Set(Vector3D* v, float newX, float newY, float newZ)
 	v->x = newX;  v->y = newY;  v->z = newZ;
 }
 
+void SetY(Vector3D* v, float newY)
+{
+	v->y = newY;
+}
+
 void LoadZero(Vector3D* v)
 {
 	v->x = v->y = v->z = 0;

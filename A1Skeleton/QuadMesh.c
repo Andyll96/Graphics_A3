@@ -9,6 +9,9 @@
 
 #include "QuadMesh.h"
 
+#define E 2.71828
+
+
 const int minMeshSize = 1;
 
 QuadMesh NewQuadMesh(int maxMeshSize)
@@ -50,14 +53,17 @@ void SetMaterialQM(QuadMesh* qm, Vector3D ambient, Vector3D diffuse, Vector3D sp
     qm->mat_ambient[1] = ambient.y;
     qm->mat_ambient[2] = ambient.z;
     qm->mat_ambient[3] = 1.0;
+
     qm->mat_specular[0] = specular.x;
     qm->mat_specular[1] = specular.y;
     qm->mat_specular[2] = specular.z;
     qm->mat_specular[3] = 1.0;
+
     qm->mat_diffuse[0] = diffuse.x;
     qm->mat_diffuse[1] = diffuse.y;
     qm->mat_diffuse[2] = diffuse.z;
     qm->mat_diffuse[3] = 1.0;
+
     qm->mat_shininess[0] = (float)shininess;
 }
 
@@ -80,7 +86,6 @@ bool CreateMemoryQM(QuadMesh* qm)
 
 	return true;
 }
-		
 
 // Fills the array of vertices and the array of quads.
 bool InitMeshQM(QuadMesh* qm, int meshSize, Vector3D origin, double meshLength, double meshWidth, Vector3D dir1, Vector3D dir2)
@@ -120,14 +125,14 @@ bool InitMeshQM(QuadMesh* qm, int meshSize, Vector3D origin, double meshLength, 
 			meshpt.x = o.x + j * v1.x;
 			meshpt.y = o.y + j * v1.y;
 			meshpt.z = o.z + j * v1.z;
-            
+			//printf("i = %d, j = %d, currentVertix = %d: meshpt(%f, %f, %f)\n", i, j, currentVertex, meshpt.x, meshpt.y, meshpt.z);
 			Set(&qm->vertices[currentVertex].position, meshpt.x,meshpt.y,meshpt.z);
 			currentVertex++;
 		}
 		// go to next row in mesh (negative z direction)
 		Add(&o, &v2, &o);
 	}
-	
+	printf("sizeof(vertices): %d", sizeof(qm->vertices));
 	// Build Quad Polygons
 	qm->numQuads=(meshSize)*(meshSize);
 	int currentQuad=0;
@@ -137,10 +142,15 @@ bool InitMeshQM(QuadMesh* qm, int meshSize, Vector3D origin, double meshLength, 
 		for (int k=0; k < meshSize; k++)
 		{
 			// Counterclockwise order
-            qm->quads[currentQuad].vertices[0]=&qm->vertices[j*    (meshSize+1)+k];
-            qm->quads[currentQuad].vertices[1]=&qm->vertices[j*    (meshSize+1)+k+1];
-            qm->quads[currentQuad].vertices[2]=&qm->vertices[(j+1)*(meshSize+1)+k+1];
-            qm->quads[currentQuad].vertices[3]=&qm->vertices[(j+1)*(meshSize+1)+k];
+            qm->quads[currentQuad].vertices[0] = &qm->vertices[j*(meshSize+1)+k];
+            qm->quads[currentQuad].vertices[1] = &qm->vertices[j*(meshSize+1)+k+1];
+            qm->quads[currentQuad].vertices[2] = &qm->vertices[(j+1)*(meshSize+1)+k+1];
+            qm->quads[currentQuad].vertices[3] = &qm->vertices[(j+1)*(meshSize+1)+k];
+			//printf("vertices[0] = qm->vertices[j*(meshSize + 1)+k] = %d\n", j*(meshSize + 1) + k);
+			//printf("vertices[1] = qm->vertices[j*(meshSize+1)+k+1] = %d\n", j*(meshSize + 1) + k + 1);
+			//printf("vertices[2] = qm->vertices[j+1)*(meshSize+1)+k+1] = %d\n", (j + 1)*(meshSize + 1) + k + 1);
+			//printf("vertices[3] = qm->vertices[(j+1)*(meshSize+1)+k] = %d\n", (j + 1)*(meshSize + 1) + k);
+
 			currentQuad++;
 		}
 	}
@@ -270,4 +280,38 @@ void ComputeNormalsQM(QuadMesh* qm)
 			currentQuad++;
 		}
 	}
+}
+
+void ComputeGauss(QuadMesh* qm, float height, float width) {
+	
+	//for (int i = 0; i < 3; i++)
+	//{
+		Vector3D currentHole = qm->holes[0];
+		float holeX = currentHole.x;
+		float holeZ = currentHole.z;
+		printf("currentHole(x, z): (%f, %f)\n", holeX, holeZ);
+		for (int j = 0; j < qm->numVertices; j++)
+		{
+			MeshVertex currentVertex = qm->vertices[j];
+			float currentX = currentVertex.position.x;
+			float currentZ = currentVertex.position.z;
+
+			float dx = (currentX - holeX);
+			float dz = (currentZ - holeZ);
+
+			float distance = (sqrt(pow(dx, 2) + pow(dz, 2)))/1000;
+			printf("Vertex(x,z): (%f, %f), distance: %f\n", currentX, currentZ, distance);
+			float newY;
+			if (distance > width/1000)
+			{
+				newY = 0;
+			}
+			else
+			{
+				newY = height * pow(E, (-width *pow(distance, 2)));
+			}
+			qm->vertices[j].position.y = newY;
+		//}
+	}
+	
 }

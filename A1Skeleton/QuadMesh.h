@@ -23,6 +23,8 @@ typedef struct
 	int numVertices;
 	MeshVertex *vertices;    // Dynamic array of all vertices
 
+	Vector3D holes[3];
+
 	int numQuads;
 	MeshQuad *quads;         // Dynamic array of all quads
 
@@ -41,3 +43,4 @@ bool InitMeshQM(QuadMesh* qm, int meshSize, Vector3D origin, double meshLength, 
 void DrawMeshQM(QuadMesh* qm, int meshSize);
 void FreeMemoryQM(QuadMesh* qm);
 void ComputeNormalsQM(QuadMesh* qm);
+void ComputeGauss(QuadMesh* qm, float height, float width);

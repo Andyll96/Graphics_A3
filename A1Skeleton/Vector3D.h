@@ -27,6 +27,7 @@ typedef struct Vector3D {
 
 Vector3D NewVector3D(float x, float y, float z);
 void Set(Vector3D* v, float newX, float newY, float newZ);
+void SetY(Vector3D* v, float newY);
 void LoadZero(Vector3D* v);
 void LoadOne(Vector3D* v);
 
