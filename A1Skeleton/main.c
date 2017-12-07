@@ -199,7 +199,7 @@ void display(void)
 		gluLookAt(x, y, z, x + lx, y + ly, z + lz, 0.0f, 1.0f, 0.0f);
 	if (cameraSwitch == 1) {
 		computePosition2();
-		gluLookAt(cx - 15, 20, cz, heroX- 15, 0, heroZ, 0, 1, 0);
+		gluLookAt(cx - 15, heroY + 20, cz, heroX- 15, 0, heroZ, 0, 1, 0);
 	}
 
 	//Drawing Global axes
@@ -207,6 +207,14 @@ void display(void)
 
 	heroY = getY(&groundMesh, heroX - 15, heroZ);
 
+	if (heroX - 15 >= meshSize / 2)
+		heroX = (meshSize / 2) + 15;
+	else if (heroX - 15 <= -(meshSize / 2))
+		heroX = -(meshSize / 2) + 15;
+	else if (heroZ >= meshSize / 2)
+		heroZ = (meshSize / 2);
+	else if (heroZ <= -(meshSize / 2))
+		heroZ = -(meshSize / 2);
 
 	//Hero
 	glPushMatrix();
@@ -413,41 +421,48 @@ void drawFoe(void)
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
 
 	glPushMatrix();
-		//glRotatef(shoulderYaw, 0.0, 1.0, 0.0);
-		glPushMatrix();
-			//Shoulder Transformations
-			//glRotatef(shoulderPitch, 0.0, 0.0, 1.0);
-			//Base Shoulder Sphere
-			glPushMatrix();
-				glutSolidSphere(2.0, 20.0, 50);
-				//drawAxes();
-			glPopMatrix();
-			glPushMatrix();
-				glTranslatef(0.0, 7.0, 0.0);
-				glScalef(1.0, 10.0, 1.0);
-				glutSolidCube(1.0);
-			glPopMatrix();
+	//local axes
+	//drawAxes();
+	glPushMatrix();
+	//Shoulder Transformations
+	//glRotatef(shoulderPitch, 0.0, 0.0, 1.0);
+	glPushMatrix();
+	glPushMatrix();
+	glTranslated(0, 2, 0);
+	glutSolidSphere(2.0, 20.0, 50);	//Base Shoulder Sphere
 
-			//Elbow Transformations
-			glTranslatef(0.0, 12.0, 0.0);
-			//glRotatef(elbowPitch, 0.0, 0.0, 1.0);
-			//Elbow Sphere
-			glPushMatrix();
-				glutSolidSphere(1.0, 20, 50);
-				//drawAxes();
-			glPopMatrix();
-			glPushMatrix();
-				glTranslatef(5.0, 0.0, 0.0);
-				glScalef(10.0, 1.0, 1.0);
-				glutSolidCube(1.0);
-			glPopMatrix();
-			//Head
-			glPushMatrix();
-				glTranslatef(11.0, 0.0, 0.0);
-				glScalef(4.0, 0.5, 3.0);
-				glutSolidCube(1.0);
-			glPopMatrix();
-		glPopMatrix();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0, 1, 0);
+	glScalef(4, 1, 3);
+	glutSolidCube(2); //Base Body
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-2, 0, 0);
+	drawWheelnAxle();
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(2, 0, 0);
+	drawWheelnAxle();
+	glPopMatrix();
+	glPopMatrix();
+
+	drawBicep();
+
+	//Elbow Transformations
+	glTranslatef(0.0, 12.0, 0.0);
+	//glRotatef(elbowPitch, 0.0, 0.0, 1.0);
+	glPushMatrix(); //Elbow Sphere
+	glutSolidSphere(1.0, 20, 50);
+	glPopMatrix();
+
+	drawForearm();
+
+	drawHead();
+
+	glPopMatrix();
 	glPopMatrix();
 }
 
