@@ -201,6 +201,9 @@ void display(void)
 		computePosition2();
 		gluLookAt(cx - 15, heroY + 20, cz, heroX- 15, 0, heroZ, 0, 1, 0);
 	}
+	if (cameraSwitch == 2) {
+		gluLookAt(30, 20, 0, 0, 0, 0, 0, 1, 0);
+	}
 
 	//Drawing Global axes
 	drawAxes();
@@ -211,10 +214,11 @@ void display(void)
 		heroX = (meshSize / 2) + 15;
 	else if (heroX - 15 <= -(meshSize / 2))
 		heroX = -(meshSize / 2) + 15;
-	else if (heroZ >= meshSize / 2)
+	 if (heroZ >= meshSize / 2)
 		heroZ = (meshSize / 2);
-	else if (heroZ <= -(meshSize / 2))
+	 else if (heroZ <= -(meshSize / 2))
 		heroZ = -(meshSize / 2);
+
 
 	//Hero
 	glPushMatrix();
@@ -309,11 +313,15 @@ void keyboard(unsigned char key, int mx, int my)
 	case 'c':
 		if (cameraSwitch == 0) {
 			cameraSwitch = 1;
-			printf("camera 1\n");
+			printf("Third Person Camera 1\n");
 		}
 		else if (cameraSwitch == 1) {
+			cameraSwitch = 2;
+			printf("First Person Camera\n");
+		}
+		else if (cameraSwitch == 2) {
 			cameraSwitch = 0;
-			printf("camera 0\n");
+			printf("Free World Camera\n");
 		}
 		break;
 	case 'f':
