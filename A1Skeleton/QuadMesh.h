@@ -44,3 +44,4 @@ void DrawMeshQM(QuadMesh* qm, int meshSize);
 void FreeMemoryQM(QuadMesh* qm);
 void ComputeNormalsQM(QuadMesh* qm);
 void ComputeGauss(QuadMesh* qm, float height, float width);
+float getY(QuadMesh* qm, float x, float z);

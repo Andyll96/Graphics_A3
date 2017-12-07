@@ -132,7 +132,7 @@ bool InitMeshQM(QuadMesh* qm, int meshSize, Vector3D origin, double meshLength, 
 		// go to next row in mesh (negative z direction)
 		Add(&o, &v2, &o);
 	}
-	printf("sizeof(vertices): %d", sizeof(qm->vertices));
+	//printf("sizeof(vertices): %d", sizeof(qm->vertices));
 	// Build Quad Polygons
 	qm->numQuads=(meshSize)*(meshSize);
 	int currentQuad=0;
@@ -282,6 +282,7 @@ void ComputeNormalsQM(QuadMesh* qm)
 	}
 }
 
+//height = b, width = a, distance = r
 void ComputeGauss(QuadMesh* qm, float height, float width) {
 	
 	for (int i = 0; i < 3; i++)
@@ -290,6 +291,7 @@ void ComputeGauss(QuadMesh* qm, float height, float width) {
 		float holeX = currentHole.x;
 		float holeZ = currentHole.z;
 		printf("currentHole(x, z): (%f, %f)\n", holeX, holeZ);
+
 		for (int j = 0; j < qm->numVertices; j++)
 		{
 			MeshVertex currentVertex = qm->vertices[j];
@@ -298,20 +300,46 @@ void ComputeGauss(QuadMesh* qm, float height, float width) {
 
 			float dx = (currentX - holeX);
 			float dz = (currentZ - holeZ);
+			
+			float distance = sqrt(pow(dx, 2) + pow(dz, 2));
+			//printf("Vertex(x,z): (%f, %f), distance: %f\n", currentX, currentZ, distance);
 
-			float distance = (sqrt(pow(dx, 2) + pow(dz, 2)))/1000;
-			printf("Vertex(x,z): (%f, %f), distance: %f\n", currentX, currentZ, distance);
+
 			float newY;
-			if (distance > width/1000)
-			{
-				newY = 0;
+			//if vertex is farther than the width of the hole, skip vertex
+			if (distance > width) {
+				continue;
 			}
-			else
-			{
-				newY = height * pow(E, (-width *pow(distance, 2)));
+			else {
+				newY = height * pow(E, (-width *pow(distance/width, 2)));
+				//printf("newY = %f\n", newY);
 				qm->vertices[j].position.y = newY;
 			}
+			
 		}
 	}
 	
 }
+
+float getY(QuadMesh* qm, float x, float z)
+{
+	for (int i = 0; i < qm->numVertices; i++)
+	{
+		MeshVertex currentVertex = qm->vertices[i];
+		float currentX = currentVertex.position.x;
+		float currentY = currentVertex.position.y;
+		float currentZ = currentVertex.position.z;
+
+		int roundPosX = roundf(x);
+		int roundPosZ = roundf(z);
+
+		//printf("Robot Position: (%d,%d)\n", roundPosX, roundPosZ);
+		//printf("Vertex(x,z): (%f, %f)\n", currentX, currentZ);
+
+		if (currentX == roundPosX && currentZ == roundPosZ)
+			return currentY;
+	}
+	return 0;
+}
+
+

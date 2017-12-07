@@ -38,7 +38,7 @@ float cx = 0.0, cy = 0.0, cz = 0.0;
 //Hero Variables
 float heroAngle = 0.0;
 float hlx = 0.0, hlz = 0.0;
-float heroX = 0.0, heroZ = 0.0;
+float heroX = 0.0, heroY = 0.0, heroZ = 0.0;
 float speed = 0.1;
 
 
@@ -93,8 +93,6 @@ void drawHead(void);
 void drawWheelnAxle(void);
 
 void printInstructions(void);
-
-float gaussianFunc(Vector3D hole, int k, int b, int a);
 
 
 int main(int argc, char** argv)
@@ -174,7 +172,8 @@ void initOpenGL(int w, int h)
 	groundMesh = NewQuadMesh(meshSize);
 	InitMeshQM(&groundMesh, meshSize, origin, meshSize, meshSize, dir1v, dir2v);
 	memcpy(groundMesh.holes, holes,sizeof(groundMesh.holes));
-	ComputeGauss(&groundMesh,-2.0f,6.0f);
+	//b, a
+	ComputeGauss(&groundMesh,-10.0f, 20.0f);
 	SetMaterialQM(&groundMesh, ambient, diffuse, specular, 0.2);
 }
 
@@ -199,9 +198,13 @@ void display(void)
 	//Drawing Global axes
 	drawAxes();
 
+	heroY = getY(&groundMesh, heroX - 15, heroZ);
+
+
 	//Hero
 	glPushMatrix();
-		glTranslatef(heroX - 15, 0.0, heroZ);
+		//printf("Y:%f\n", getY(&groundMesh, heroX - 15, heroZ));
+		glTranslatef(heroX - 15, heroY, heroZ);
 		glRotatef(heroAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
 		drawHero(0.243, 0.635, 0.956);
@@ -614,19 +617,6 @@ void printInstructions(void)
 	printf("\t-'s' key: moves robot backwards\n");
 	printf("\t-'a' key: rotates robot counter clockwise\n");
 	printf("\t-'d' key: rotates robot clockwise\n");
-}
-
-//k = hole number, b = height, a = width of hole, r = distance from hole
-float gaussianFunc(Vector3D hole, int holeNum, int height, int width)
-{
-	float y = 0.0;
-	float distance = 0.0;
-	float dx =0;
-	float dy=0;
-
-	distance = sqrt(pow(dx, 2) + pow(dy, 2));
-	y = height * pow(E, (-width *pow(distance, 2)));
-	return y;
 }
 
 
