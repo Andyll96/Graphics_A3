@@ -44,7 +44,12 @@ float turnSpeed = 2;
 int heroHealth = 100;
 
 //Foe Variables
-
+float foeAngle = 0.0;
+float flx = 0.0, flz = 0.0;
+float foeX = 0.0, foeY = 0.0, foeZ = 0.0;
+float foeSpeed = 0.0125;
+float foeTurnSpeed = 2;
+int doeHealth = 100;
 
 
 // Light positions
@@ -212,16 +217,32 @@ void display(void)
 
 	if (heroX - 15 >= meshSize / 2) {
 		heroX = (meshSize / 2) + 15;
+		heroAngle += 180;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		heroX--;
 	}
-	else if (heroX - 15 <= -(meshSize / 2)) {
+	if (heroX - 15 <= -(meshSize / 2)) {
 		heroX = -(meshSize / 2) + 15;
+		heroAngle += 180;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		heroX++;
 	}
 	if (heroZ >= meshSize / 2) {
 		heroZ = (meshSize / 2);
+		heroAngle += 180;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		heroZ--;
 	 }
-	else if (heroZ <= -(meshSize / 2)) {
+	if (heroZ <= -(meshSize / 2)) {
 		heroZ = -(meshSize / 2);
-	 }
+		heroAngle += 180;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		heroZ++;
+	}
 
 
 	//Hero
@@ -232,11 +253,30 @@ void display(void)
 		glScaled(0.7, 0.7, 0.7);
 		drawHero(0.243, 0.635, 0.956);
 	glPopMatrix();
+	
+	//foeX -= foeSpeed;
+	foeZ += foeSpeed;
 
+	if (foeX >= (meshSize / 2) - 15)  {
+		foeX = (meshSize / 2) - 15;
+	}
+	if (foeX <= -(meshSize / 2) - 15)
+	{
+		foeX = -(meshSize / 2) - 15;
+	}
+	if (foeZ >= (meshSize / 2))
+	{
+		foeZ = (meshSize / 2);
+	}
+	if (foeZ <= -(meshSize / 2))
+	{
+		foeZ = -(meshSize / 2);
+	}
+	
 	//Foe
 	glPushMatrix();
-		glTranslated(15.0, 0.0, 0.0);
-		glRotated(180.0, 0.0, 1.0, 0.0);
+		glTranslated(15.0 + foeX, 0.0, foeZ);
+		glRotated(180.0 + foeAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
 		drawFoe();
 	glPopMatrix();
@@ -381,19 +421,23 @@ void keyRelease(int key, int x, int y)
 	switch (key)
 	{
 	case 'w':
+		turnSpeed = 0;
 		speed = 0;
 		printf("w release\n");
 		break;
 	case 's':
+		turnSpeed = 0;
 		speed = 0;
 		printf("s release\n");
 		break;
 	case 'a':
 		turnSpeed = 0;
+		speed = 0;
 		printf("a release\n");
 		break;
 	case 'd':
 		turnSpeed = 0;
+		speed = 0;
 		printf("d release\n");
 		break;
 	}
