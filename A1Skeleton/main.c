@@ -197,12 +197,12 @@ void display(void)
 	
 	if(cameraSwitch == 0)
 		gluLookAt(x, y, z, x + lx, y + ly, z + lz, 0.0f, 1.0f, 0.0f);
-	if (cameraSwitch == 1) {
+	else if (cameraSwitch == 1) {
 		computePosition2();
 		gluLookAt(cx - 15, heroY + 20, cz, heroX- 15, 0, heroZ, 0, 1, 0);
 	}
-	if (cameraSwitch == 2) {
-		gluLookAt(30, 20, 0, 0, 0, 0, 0, 1, 0);
+	else if (cameraSwitch == 2) {
+		gluLookAt(heroX - 15, 10 + heroY, heroZ, (heroX - 15) +hlx, 10 + heroY, heroZ + hlz, 0, 1, 0);
 	}
 
 	//Drawing Global axes
@@ -210,14 +210,18 @@ void display(void)
 
 	heroY = getY(&groundMesh, heroX - 15, heroZ);
 
-	if (heroX - 15 >= meshSize / 2)
+	if (heroX - 15 >= meshSize / 2) {
 		heroX = (meshSize / 2) + 15;
-	else if (heroX - 15 <= -(meshSize / 2))
+	}
+	else if (heroX - 15 <= -(meshSize / 2)) {
 		heroX = -(meshSize / 2) + 15;
-	 if (heroZ >= meshSize / 2)
+	}
+	if (heroZ >= meshSize / 2) {
 		heroZ = (meshSize / 2);
-	 else if (heroZ <= -(meshSize / 2))
+	 }
+	else if (heroZ <= -(meshSize / 2)) {
 		heroZ = -(meshSize / 2);
+	 }
 
 
 	//Hero
@@ -378,15 +382,19 @@ void keyRelease(int key, int x, int y)
 	{
 	case 'w':
 		speed = 0;
+		printf("w release\n");
 		break;
 	case 's':
 		speed = 0;
+		printf("s release\n");
 		break;
 	case 'a':
 		turnSpeed = 0;
+		printf("a release\n");
 		break;
 	case 'd':
 		turnSpeed = 0;
+		printf("d release\n");
 		break;
 	}
 
