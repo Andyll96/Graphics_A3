@@ -40,11 +40,16 @@ float heroAngle = 0.0;
 float hlx = 0.0, hlz = 0.0;
 float heroX = 0.0, heroY = 0.0, heroZ = 0.0;
 float speed = 0.1;
+float turnSpeed = 2;
+int heroHealth = 100;
+
+//Foe Variables
+
 
 
 // Light positions
-static GLfloat light_position0[] = { -6.0F, 12.0F, 0.0F, 1.0F };
-static GLfloat light_position1[] = { 6.0F, 12.0F, 0.0F, 1.0F };
+static GLfloat light_position0[] = { -20.0F, 25.0F, 15.0F, 1.0F };
+static GLfloat light_position1[] = { 15.0F, 15.0F, 0.0F, 1.0F };
 
 //Light properties
 static GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -73,6 +78,7 @@ void reshape(int w, int h);
 void keyboard(unsigned char key, int mx, int my);
 void functionKeys(int key, int x, int y);
 void releaseKey(int key, int x, int y);
+void keyRelease(int key, int x, int y);
 void mouseButton(int button, int state, int x, int y);
 void mouseMove(int x, int y);
 void drawFoe(void);
@@ -115,6 +121,7 @@ int main(int argc, char** argv)
 	glutSpecialFunc(functionKeys);
 	glutIdleFunc(display);
 
+	glutKeyboardUpFunc(keyRelease);
 	glutSpecialUpFunc(releaseKey);
 
 	glutMouseFunc(mouseButton);
@@ -173,7 +180,7 @@ void initOpenGL(int w, int h)
 	InitMeshQM(&groundMesh, meshSize, origin, meshSize, meshSize, dir1v, dir2v);
 	memcpy(groundMesh.holes, holes,sizeof(groundMesh.holes));
 	//b, a
-	ComputeGauss(&groundMesh,-10.0f, 20.0f);
+	ComputeGauss(&groundMesh, -5.0f, 10.0f);
 	SetMaterialQM(&groundMesh, ambient, diffuse, specular, 0.2);
 }
 
@@ -203,7 +210,7 @@ void display(void)
 
 	//Hero
 	glPushMatrix();
-		//printf("Y:%f\n", getY(&groundMesh, heroX - 15, heroZ));
+		//printf("hero Position:(%f, %f, %f)\n", heroX - 15, heroY, heroZ);
 		glTranslatef(heroX - 15, heroY, heroZ);
 		glRotatef(heroAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
@@ -255,7 +262,8 @@ void keyboard(unsigned char key, int mx, int my)
 			heroX += hlx * speed;
 			heroZ += hlz * speed;
 		}
-		printf("up");
+		speed += 0.025;
+		printf("up\n");
 		break;
 	case 's': //down
 		if (hlx == 0) {
@@ -268,36 +276,36 @@ void keyboard(unsigned char key, int mx, int my)
 			heroX -= hlx * speed;
 			heroZ -= hlz * speed;
 		}
-		
-		printf("down");
+		speed += 0.025;
+		printf("down\n");
 		break;
 	case 'a': //left
-		heroAngle += 2.0;
+		heroAngle += turnSpeed;
 		hlx = cos((heroAngle)*(PI/180));
 		hlz = -sin((heroAngle)*(PI/180));
 
 		printf("heroAngle : %f\n", heroAngle);
 		//printf("calculated: hlx = %f hlz = %f\n", hlx, hlz);
 		//printf("actual: hlx = %f hlz = %f\n", cos(heroAngle), sin(heroAngle));
-
+		turnSpeed += 0.5;
 		break;
 	case 'd': //right
-		heroAngle -= 2.0;
+		heroAngle -= turnSpeed;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 
-
+		turnSpeed += 0.5;
 		//printf("hlx = %f hlz = %f\n", hlx, hlz);
 		break;
 
 	case 'c':
 		if (cameraSwitch == 0) {
 			cameraSwitch = 1;
-			printf("camera 1");
+			printf("camera 1\n");
 		}
 		else if (cameraSwitch == 1) {
 			cameraSwitch = 0;
-			printf("camera 0");
+			printf("camera 0\n");
 		}
 		break;
 	case 'f':
@@ -346,6 +354,26 @@ void releaseKey(int key, int x, int y)
 		deltaXMove = 0;
 		break;
 	}
+}
+
+void keyRelease(int key, int x, int y)
+{
+	switch (key)
+	{
+	case 'w':
+		speed = 0;
+		break;
+	case 's':
+		speed = 0;
+		break;
+	case 'a':
+		turnSpeed = 0;
+		break;
+	case 'd':
+		turnSpeed = 0;
+		break;
+	}
+
 }
 
 void mouseButton(int button, int state, int x, int y)
@@ -457,7 +485,6 @@ void drawHero(void)
 					glTranslatef(2, 0, 0);
 					drawWheelnAxle();
 				glPopMatrix();
-
 			glPopMatrix();
 
 			drawBicep();

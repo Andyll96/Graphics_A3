@@ -307,7 +307,7 @@ void ComputeGauss(QuadMesh* qm, float height, float width) {
 
 			float newY;
 			//if vertex is farther than the width of the hole, skip vertex
-			if (distance > width) {
+			if (distance > width ) {
 				continue;
 			}
 			else {
