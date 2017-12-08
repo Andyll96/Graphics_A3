@@ -232,6 +232,8 @@ void display(void)
 		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
+		baseHit(&hero);
+		printPlayerData(&hero);
 		heroX--;
 	}
 	if (heroX - 15 <= -(meshSize / 2)) {
@@ -239,6 +241,8 @@ void display(void)
 		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
+		baseHit(&hero);
+		printPlayerData(&hero);
 		heroX++;
 	}
 	if (heroZ >= meshSize / 2) {
@@ -246,6 +250,8 @@ void display(void)
 		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
+		baseHit(&hero);
+		printPlayerData(&hero);
 		heroZ--;
 	 }
 	if (heroZ <= -(meshSize / 2)) {
@@ -253,6 +259,8 @@ void display(void)
 		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
+		baseHit(&hero);
+		printPlayerData(&hero);
 		heroZ++;
 	}
 
@@ -271,6 +279,8 @@ void display(void)
 	
 	//Foe
 	glPushMatrix();
+		setPosition(&foe, 15 + foeX, foeY, foeZ);
+		//printPlayerData(&foe);
 		glTranslated(15.0 + foeX, foeY, foeZ);
 		glRotated(180.0 + foeAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
@@ -280,6 +290,9 @@ void display(void)
 	//Draw Mesh
 	DrawMeshQM(&groundMesh, meshSize);
 	glutSwapBuffers(); //Double buffering, swap buffers
+
+	collisionDetect(&hero, &foe);
+	checkWinner(&hero, &foe);
 }
 
 //Called whenever user resizes the window, including at initialization
@@ -731,14 +744,14 @@ void foeDrive(void)
 	foeY = getY(&groundMesh, foeX + 15, foeZ);
 
 	if (flx == 0) {
-		foeX -= foeSpeed;
+		//foeX -= foeSpeed;
 	}
 	else if (flz == 0) {
-		foeZ -= foeSpeed;
+	//	foeZ -= foeSpeed;
 	}
 	else {
-		foeX -= flx * foeSpeed;
-		foeZ -= flz * foeSpeed;
+		//foeX -= flx * foeSpeed;
+		//foeZ -= flz * foeSpeed;
 	}
 
 	
@@ -772,7 +785,6 @@ void foeDrive(void)
 		foeZ++;
 	}
 }
-
 
 
 
