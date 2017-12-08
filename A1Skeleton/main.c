@@ -47,7 +47,7 @@ int heroHealth = 100;
 float foeAngle = 0.0;
 float flx = 0.0, flz = 0.0;
 float foeX = 0.0, foeY = 0.0, foeZ = 0.0;
-float foeSpeed = 0.0125;
+float foeSpeed = 0.025;
 float foeTurnSpeed = 2;
 int doeHealth = 100;
 
@@ -266,7 +266,7 @@ void display(void)
 	
 	//Foe
 	glPushMatrix();
-		glTranslated(15.0 + foeX, 0.0, foeZ);
+		glTranslated(15.0 + foeX, foeY, foeZ);
 		glRotated(180.0 + foeAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
 		drawFoe();
@@ -722,6 +722,9 @@ void printInstructions(void)
 
 void foeDrive(void)
 {
+
+	foeY = getY(&groundMesh, foeX + 15, foeZ);
+
 	if (flx == 0) {
 		foeX -= foeSpeed;
 	}
