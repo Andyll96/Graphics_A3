@@ -52,6 +52,8 @@ float foeX = 0.0, foeY = 0.0, foeZ = 0.0;
 float foeSpeed = 0.025;
 float foeTurnSpeed = 2;
 
+bool fullscreen = false;
+
 
 // Light positions
 static GLfloat light_position0[] = { -20.0F, 25.0F, 15.0F, 1.0F };
@@ -388,7 +390,15 @@ void keyboard(unsigned char key, int mx, int my)
 		}
 		break;
 	case 'f':
-		glutFullScreen();
+		fullscreen = !fullscreen;
+		if (fullscreen) {
+			glutFullScreen();
+		}
+		else {
+			glutReshapeWindow(vWidth, vHeight);
+			glutPositionWindow((glutGet(GLUT_SCREEN_WIDTH) - 1000) / 2, 0);
+		}
+		break;
 	case 'r': //because for some keyboards, the release function doesn't register
 		turnSpeed = 0;
 		speed = 0;
