@@ -10,6 +10,7 @@
 #include "CubeMesh.h"
 #include "QuadMesh.h"
 #include "Matrix3D.h"
+#include "Player.h"
 
 #define PI 3.141592654
 #define E 2.71828
@@ -36,20 +37,20 @@ int cameraSwitch = 0;
 float cx = 0.0, cy = 0.0, cz = 0.0;
 
 //Hero Variables
+Player hero;
 float heroAngle = 0.0;
 float hlx = 0.0, hlz = 0.0;
 float heroX = 0.0, heroY = 0.0, heroZ = 0.0;
 float speed = 0.1;
 float turnSpeed = 2;
-int heroHealth = 100;
 
 //Foe Variables
+Player foe;
 float foeAngle = 0.0;
 float flx = 0.0, flz = 0.0;
 float foeX = 0.0, foeY = 0.0, foeZ = 0.0;
 float foeSpeed = 0.025;
 float foeTurnSpeed = 2;
-int doeHealth = 100;
 
 
 // Light positions
@@ -195,6 +196,9 @@ void initOpenGL(int w, int h)
 	//b, a
 	ComputeGauss(&groundMesh, -5.0f, 10.0f);
 	SetMaterialQM(&groundMesh, ambient, diffuse, specular, 0.2);
+
+	hero = newPlayer('h', -15, 0, 0);
+	foe = newPlayer('f', 15, 0, 0);
 }
 
 //sets up camera, sets materials and does the modeling transforms
@@ -255,7 +259,8 @@ void display(void)
 
 	//Hero
 	glPushMatrix();
-		//printf("hero Position:(%f, %f, %f)\n", heroX - 15, heroY, heroZ);
+		setPosition(&hero, heroX - 15, heroY, heroZ);
+		//printPlayerData(&hero);
 		glTranslatef(heroX - 15, heroY, heroZ);
 		glRotatef(heroAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);

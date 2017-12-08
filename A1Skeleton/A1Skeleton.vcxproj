@@ -118,6 +118,7 @@
   <ItemGroup>
     <ClInclude Include="CubeMesh.h" />
     <ClInclude Include="Matrix3D.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="QuadMesh.h" />
     <ClInclude Include="Vector3D.h" />
   </ItemGroup>
@@ -125,6 +126,7 @@
     <ClCompile Include="CubeMesh.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Matrix3D.c" />
+    <ClCompile Include="Player.c" />
     <ClCompile Include="QuadMesh.c" />
     <ClCompile Include="Vector3D.c" />
   </ItemGroup>
