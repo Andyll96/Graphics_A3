@@ -105,6 +105,8 @@ void drawWheelnAxle(void);
 
 void printInstructions(void);
 
+void foeDrive(void);
+
 
 int main(int argc, char** argv)
 {
@@ -175,6 +177,12 @@ void initOpenGL(int w, int h)
 	Vector3D ambient = NewVector3D(0.0f, 0.05f, 0.0f);
 	Vector3D diffuse = NewVector3D(0.176f, 0.823f, 0.274f);
 	Vector3D specular = NewVector3D(0.4f, 0.04f, 0.04f);
+	
+	//random starting angle for foe
+	srand(time(NULL));
+	foeAngle = (rand() % 360 + 1);
+	flx = cos((foeAngle)*(PI / 180));
+	flz = -sin((foeAngle)*(PI / 180));
 
 	//List of holes
 	holes[0] = NewVector3D(10, 0, 10);
@@ -217,28 +225,28 @@ void display(void)
 
 	if (heroX - 15 >= meshSize / 2) {
 		heroX = (meshSize / 2) + 15;
-		heroAngle += 180;
+		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		heroX--;
 	}
 	if (heroX - 15 <= -(meshSize / 2)) {
 		heroX = -(meshSize / 2) + 15;
-		heroAngle += 180;
+		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		heroX++;
 	}
 	if (heroZ >= meshSize / 2) {
 		heroZ = (meshSize / 2);
-		heroAngle += 180;
+		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		heroZ--;
 	 }
 	if (heroZ <= -(meshSize / 2)) {
 		heroZ = -(meshSize / 2);
-		heroAngle += 180;
+		heroAngle += 135;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		heroZ++;
@@ -254,24 +262,7 @@ void display(void)
 		drawHero(0.243, 0.635, 0.956);
 	glPopMatrix();
 	
-	//foeX -= foeSpeed;
-	foeZ += foeSpeed;
-
-	if (foeX >= (meshSize / 2) - 15)  {
-		foeX = (meshSize / 2) - 15;
-	}
-	if (foeX <= -(meshSize / 2) - 15)
-	{
-		foeX = -(meshSize / 2) - 15;
-	}
-	if (foeZ >= (meshSize / 2))
-	{
-		foeZ = (meshSize / 2);
-	}
-	if (foeZ <= -(meshSize / 2))
-	{
-		foeZ = -(meshSize / 2);
-	}
+	foeDrive();
 	
 	//Foe
 	glPushMatrix();
@@ -370,6 +361,11 @@ void keyboard(unsigned char key, int mx, int my)
 		break;
 	case 'f':
 		glutFullScreen();
+	case 'r': //because for some keyboards, the release function doesn't register
+		turnSpeed = 0;
+		speed = 0;
+		printf("emergency reset\n");
+		break;
 	}
 
 	glutPostRedisplay();   // Trigger a window redisplay
@@ -604,6 +600,7 @@ void drawAxes(void)
 	glEnd();
 }
 
+//camera helper
 void computePosition(float deltaMove)
 {
 	x += deltaMove * lx * 0.1f;
@@ -614,11 +611,13 @@ void computePosition(float deltaMove)
 		y = 0;
 }
 
+//camera helper
 void computeXPosition(float deltaMove)
 {
 	x += deltaXMove * 0.1f;
 }
 
+//camera2 helper
 void computePosition2()
 {
 	float radius = 15;
@@ -720,6 +719,55 @@ void printInstructions(void)
 	printf("\t-'a' key: rotates robot counter clockwise\n");
 	printf("\t-'d' key: rotates robot clockwise\n");
 }
+
+void foeDrive(void)
+{
+	if (flx == 0) {
+		foeX -= foeSpeed;
+	}
+	else if (flz == 0) {
+		foeZ -= foeSpeed;
+	}
+	else {
+		foeX -= flx * foeSpeed;
+		foeZ -= flz * foeSpeed;
+	}
+
+	
+	if (foeX >= (meshSize / 2) - 15) {
+		foeX = (meshSize / 2)-15;
+		foeAngle += 135;
+		flx = cos((foeAngle)*(PI / 180));
+		flz = -sin((foeAngle)*(PI / 180));
+		foeX--;
+	}
+	if (foeX <= -(meshSize / 2) - 15) {
+		foeX = -(meshSize / 2) - 15;
+		foeAngle += 135;
+		flx = cos((foeAngle)*(PI / 180));
+		flz = -sin((foeAngle)*(PI / 180));
+		foeX++;
+	}
+	if (foeZ >= (meshSize) / 2) {
+		foeZ = (meshSize) / 2;
+		foeAngle += 135;
+		flx = cos((foeAngle)*(PI / 180));
+		flz = -sin((foeAngle)*(PI / 180));
+		foeZ--;
+	}
+	if (foeZ <= -(meshSize/2))
+	{
+		foeZ = -(meshSize / 2);
+		foeAngle += 135;
+		flx = cos((foeAngle)*(PI / 180));
+		flz = -sin((foeAngle)*(PI / 180));
+		foeZ++;
+	}
+}
+
+
+
+
 
 
 
