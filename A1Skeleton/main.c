@@ -233,7 +233,6 @@ void display(void)
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		baseHit(&hero);
-		printPlayerData(&hero);
 		heroX--;
 	}
 	if (heroX - 15 <= -(meshSize / 2)) {
@@ -242,7 +241,6 @@ void display(void)
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		baseHit(&hero);
-		printPlayerData(&hero);
 		heroX++;
 	}
 	if (heroZ >= meshSize / 2) {
@@ -251,7 +249,6 @@ void display(void)
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		baseHit(&hero);
-		printPlayerData(&hero);
 		heroZ--;
 	 }
 	if (heroZ <= -(meshSize / 2)) {
@@ -260,7 +257,6 @@ void display(void)
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		baseHit(&hero);
-		printPlayerData(&hero);
 		heroZ++;
 	}
 
@@ -291,7 +287,21 @@ void display(void)
 	DrawMeshQM(&groundMesh, meshSize);
 	glutSwapBuffers(); //Double buffering, swap buffers
 
-	collisionDetect(&hero, &foe);
+	if (collisionDetect(&hero, &foe) == 0)
+	{
+		baseHit(&hero);
+		heroAngle += 135;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		heroX -= 6;
+
+
+		baseHit(&foe);
+		foeAngle += 135;
+		flx = cos((foeAngle)*(PI / 180));
+		flz = -sin((foeAngle)*(PI / 180));
+		foeX += 6;
+	}
 	checkWinner(&hero, &foe);
 }
 
@@ -328,7 +338,7 @@ void keyboard(unsigned char key, int mx, int my)
 			heroZ += hlz * speed;
 		}
 		speed += 0.025;
-		printf("up\n");
+		//printf("up\n");
 		break;
 	case 's': //down
 		if (hlx == 0) {
@@ -342,7 +352,7 @@ void keyboard(unsigned char key, int mx, int my)
 			heroZ -= hlz * speed;
 		}
 		speed += 0.025;
-		printf("down\n");
+		//printf("down\n");
 		break;
 	case 'a': //left
 		heroAngle += turnSpeed;
@@ -744,14 +754,14 @@ void foeDrive(void)
 	foeY = getY(&groundMesh, foeX + 15, foeZ);
 
 	if (flx == 0) {
-		//foeX -= foeSpeed;
+		foeX -= foeSpeed;
 	}
 	else if (flz == 0) {
-	//	foeZ -= foeSpeed;
+		foeZ -= foeSpeed;
 	}
 	else {
-		//foeX -= flx * foeSpeed;
-		//foeZ -= flz * foeSpeed;
+		foeX -= flx * foeSpeed;
+		foeZ -= flz * foeSpeed;
 	}
 
 	
