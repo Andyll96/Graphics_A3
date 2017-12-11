@@ -50,14 +50,17 @@ void setPosition(Player * player, int x, int y, int z)
 	float llx = cos((player->elbowAngle)*(PI / 180));
 	float ly = sin((player->elbowAngle)*(PI / 180));
 
+	float shoulderlx = cos((player->shoulderAngle + 46)*(PI / 180));
+	float shoulderly = sin((player->shoulderAngle + 46)*(PI / 180));
+
 	if (player->name == 'h')
 	{
-		Set(&player->weaponPosition, x + (8 * lx) * llx, y + 8.3 + (8.3 * ly), z + 8 * lz);
+		Set(&player->weaponPosition, x + (11.53 * lx) * llx * shoulderlx, y + 2.5 + (8.3 * (ly + shoulderly)), z + 8 * lz);
 
 	}
 	else if (player->name == 'f')
 	{
-		Set(&player->weaponPosition, x + (-8 * lx), y + 8.3 + (8.3 * ly), z + -8 * lz);
+		Set(&player->weaponPosition, x + (-11.53 * lx) * llx * shoulderlx, y + 8.3 + (8.3 * ly), z + -8 * lz);
 	}
 
 }
@@ -111,12 +114,19 @@ int collisionDetect(Player * hero, Player * foe)
 	float weaponHeroY = hero->weaponPosition.y;
 	float weaponHeroZ = hero->weaponPosition.z;
 
-	float weaponDx = weaponFoeX - weaponHeroX;
-	float weaponDy = weaponFoeY - weaponHeroY;
-	float weaponDz = weaponFoeZ - weaponHeroZ;
+	float heroWeaponDx = weaponHeroX - baseFoeX;
+	float heroWeaponDy = weaponHeroY - baseFoeY;
+	float heroWeaponDz = weaponHeroZ - baseFoeZ;
+
+	float foeWeaponDx = weaponFoeX - baseHeroX;
+	float foeWeaponDy = weaponFoeY - baseHeroY;
+	float foeWeaponDz = weaponFoeZ - baseHeroZ;
 
 	float distance = sqrt(pow(dx, 2) + pow(dz, 2));
-	float weaponDistance = sqrt(pow(weaponDx, 2) + pow(weaponDy, 2) + pow(weaponDz, 2));
+
+	float heroWeaponDistance = sqrt(pow(heroWeaponDx, 2) + pow(heroWeaponDy, 2) + pow(heroWeaponDz, 2));
+	float foeWeaponDistance = sqrt(pow(foeWeaponDx, 2) + pow(foeWeaponDy, 2) + pow(foeWeaponDz, 2));
+
 
 	//printf("distance: %f, dy: %f\n", distance, dy);
 	//base hit
@@ -125,9 +135,13 @@ int collisionDetect(Player * hero, Player * foe)
 		printf("\nHit!!!!!!!!!!\n");
 		return 0;
 	}
-	if (weaponDistance < 3) {
-		printf("\nWeapon Hit!!!!!!!!!\n");
+	if (heroWeaponDistance < 5) {
+		printf("\nHero Weapon Hit!!!!!!!!!\n");
 		return 1;
+	}
+	if (foeWeaponDistance < 5) {
+		printf("\nFoe Weapon Hit!!!!!!!!!\n");
+		return 2;
 	}
 }
 

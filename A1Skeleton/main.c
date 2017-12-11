@@ -275,6 +275,7 @@ void display(void)
 	//Hero
 	hero.Angle = heroAngle;
 	hero.elbowAngle = elbowPitch;
+	hero.shoulderAngle = shoulderPitch;
 	glPushMatrix();
 		setPosition(&hero, heroX - 15, heroY, heroZ);//for the heroData, including the weapon
 		glTranslatef(heroX - 15, heroY, heroZ);
@@ -292,6 +293,7 @@ void display(void)
 	//Foe
 	foe.Angle = foeAngle;
 	foe.elbowAngle = elbowPitch;
+	foe.shoulderAngle = shoulderPitch;
 	glPushMatrix();
 		setPosition(&foe, 15 + foeX, foeY, foeZ);
 		glTranslated(15.0 + foeX, foeY, foeZ);
@@ -326,7 +328,6 @@ void display(void)
 	}
 	else if (collisionDetect(&hero, &foe) == 1)
 	{
-		weaponHit(&hero);
 		heroAngle += 135;
 		speed = 0;
 		hlx = cos((heroAngle)*(PI / 180));
@@ -335,6 +336,21 @@ void display(void)
 
 
 		weaponHit(&foe);
+		foeAngle += 135;
+		flx = cos((foeAngle)*(PI / 180));
+		flz = -sin((foeAngle)*(PI / 180));
+		foeX += 6;
+	}
+	else if (collisionDetect(&hero, &foe) == 2)
+	{
+		weaponHit(&hero);
+		heroAngle += 135;
+		speed = 0;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		heroX -= 6;
+
+
 		foeAngle += 135;
 		flx = cos((foeAngle)*(PI / 180));
 		flz = -sin((foeAngle)*(PI / 180));
