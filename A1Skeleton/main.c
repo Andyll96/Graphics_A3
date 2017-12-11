@@ -43,6 +43,13 @@ float hlx = 0.0, hlz = 0.0;
 float heroX = 0.0, heroY = 0.0, heroZ = 0.0;
 float speed = 0.1;
 float turnSpeed = 2;
+float heroWeaponX = 0.0, heroWeaponY = 0.0, heroWeaponZ = 0.0;
+
+//arm controls for both robots
+float elbowPitch = 0.0;
+bool elbowAscend = true;
+float shoulderPitch = 0.0;
+bool shoulderAscend = true;
 
 //Foe Variables
 Player foe;
@@ -51,6 +58,8 @@ float flx = 0.0, flz = 0.0;
 float foeX = 0.0, foeY = 0.0, foeZ = 0.0;
 float foeSpeed = 0.025;
 float foeTurnSpeed = 2;
+float foeWeaponX = 0.0, foeWeaponY = 0.0, foeWeaponZ = 0.0;
+
 
 bool fullscreen = false;
 
@@ -105,10 +114,13 @@ void drawBicep(void);
 void drawForearm(void);
 void drawHead(void);
 void drawWheelnAxle(void);
+void drawArm(void);
 
 void printInstructions(void);
 
 void foeDrive(void);
+
+void fkPrinter(void);
 
 
 int main(int argc, char** argv)
@@ -264,25 +276,34 @@ void display(void)
 
 
 	//Hero
+	hero.Angle = heroAngle;
 	glPushMatrix();
-		setPosition(&hero, heroX - 15, heroY, heroZ);
-		//printPlayerData(&hero);
+		setPosition(&hero, heroX - 15, heroY, heroZ);//for the heroData, including the weapon
 		glTranslatef(heroX - 15, heroY, heroZ);
 		glRotatef(heroAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
 		drawHero(0.243, 0.635, 0.956);
 	glPopMatrix();
-	
+	fkPrinter();
+	glPushMatrix();
+		glTranslatef(hero.weaponPosition.x, hero.weaponPosition.y, hero.weaponPosition.z);
+		glutWireCube(1.0);
+	glPopMatrix();
+
 	foeDrive();
 	
 	//Foe
+	foe.Angle = foeAngle;
 	glPushMatrix();
 		setPosition(&foe, 15 + foeX, foeY, foeZ);
-		//printPlayerData(&foe);
 		glTranslated(15.0 + foeX, foeY, foeZ);
 		glRotated(180.0 + foeAngle, 0.0, 1.0, 0.0);
 		glScaled(0.7, 0.7, 0.7);
 		drawFoe();
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(foe.weaponPosition.x, foe.weaponPosition.y, foe.weaponPosition.z);
+	glutWireCube(1.0);
 	glPopMatrix();
 	
 	//Draw Mesh
@@ -293,12 +314,29 @@ void display(void)
 	{
 		baseHit(&hero);
 		heroAngle += 135;
+		speed = 0;
 		hlx = cos((heroAngle)*(PI / 180));
 		hlz = -sin((heroAngle)*(PI / 180));
 		heroX -= 6;
 
 
 		baseHit(&foe);
+		foeAngle += 135;
+		flx = cos((foeAngle)*(PI / 180));
+		flz = -sin((foeAngle)*(PI / 180));
+		foeX += 6;
+	}
+	else if (collisionDetect(&hero, &foe) == 1)
+	{
+		weaponHit(&hero);
+		heroAngle += 135;
+		speed = 0;
+		hlx = cos((heroAngle)*(PI / 180));
+		hlz = -sin((heroAngle)*(PI / 180));
+		heroX -= 6;
+
+
+		weaponHit(&foe);
 		foeAngle += 135;
 		flx = cos((foeAngle)*(PI / 180));
 		flz = -sin((foeAngle)*(PI / 180));
@@ -321,7 +359,7 @@ void reshape(int w, int h)
 	glLoadIdentity();
 }
 
-void keyboard(unsigned char key, int mx, int my)
+void keyboard(unsigned char key, int mx, int my) 
 {
 	switch (key)
 	{
@@ -403,6 +441,26 @@ void keyboard(unsigned char key, int mx, int my)
 		turnSpeed = 0;
 		speed = 0;
 		printf("emergency reset\n");
+		break;
+	case 'e':
+		if (elbowPitch == 60)
+			elbowAscend = false;
+		else if (elbowPitch == -60)
+			elbowAscend = true;
+		if (elbowAscend)
+			elbowPitch += 2;
+		else
+			elbowPitch -= 2;
+		break;
+	case 'q':
+		if (shoulderPitch == 32)
+			shoulderAscend = false;
+		else if (shoulderPitch == -32)
+			shoulderAscend = true;
+		if (shoulderAscend)
+			shoulderPitch += 2;
+		else
+			shoulderPitch -= 2;
 		break;
 	}
 
@@ -514,70 +572,15 @@ void drawFoe(void)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, foe_specular);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
 
-	glPushMatrix();
-	//local axes
-	//drawAxes();
-	glPushMatrix();
-	//Shoulder Transformations
-	//glRotatef(shoulderPitch, 0.0, 0.0, 1.0);
-	glPushMatrix();
-	glPushMatrix();
-	glTranslated(0, 2, 0);
-	glutSolidSphere(2.0, 20.0, 50);	//Base Shoulder Sphere
-
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslated(0, 1, 0);
-	glScalef(4, 1, 3);
-	glutSolidCube(2); //Base Body
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-2, 0, 0);
-	drawWheelnAxle();
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(2, 0, 0);
-	drawWheelnAxle();
-	glPopMatrix();
-	glPopMatrix();
-
-	drawBicep();
-
-	//Elbow Transformations
-	glTranslatef(0.0, 12.0, 0.0);
-	//glRotatef(elbowPitch, 0.0, 0.0, 1.0);
-	glPushMatrix(); //Elbow Sphere
-	glutSolidSphere(1.0, 20, 50);
-	glPopMatrix();
-
-	drawForearm();
-
-	drawHead();
-
-	glPopMatrix();
-	glPopMatrix();
-}
-
-void drawHero(void) 
-{
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, hero_ambient);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, hero_diffuse);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, hero_specular);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
-	
-	glPushMatrix();
+		glPushMatrix();
 		//local axes
 		//drawAxes();
 		glPushMatrix();
-			//Shoulder Transformations
-			//glRotatef(shoulderPitch, 0.0, 0.0, 1.0);
+			
 			glPushMatrix();
 				glPushMatrix();
 					glTranslated(0, 2, 0);
 					glutSolidSphere(2.0, 20.0, 50);	//Base Shoulder Sphere
-					
 				glPopMatrix();
 
 				glPushMatrix();
@@ -596,18 +599,48 @@ void drawHero(void)
 				glPopMatrix();
 			glPopMatrix();
 
-			drawBicep();
+			drawArm();
 
-			//Elbow Transformations
-			glTranslatef(0.0, 12.0, 0.0);
-			//glRotatef(elbowPitch, 0.0, 0.0, 1.0);
-			glPushMatrix(); //Elbow Sphere
-				glutSolidSphere(1.0, 20, 50); 
+		glPopMatrix();
+	glPopMatrix();
+
+}
+
+void drawHero(void) 
+{
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, hero_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, hero_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, hero_specular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
+	
+	glPushMatrix();
+		//local axes
+		//drawAxes();
+		glPushMatrix();
+			
+			glPushMatrix();
+				glPushMatrix();
+					glTranslated(0, 2, 0);
+					glutSolidSphere(2.0, 20.0, 50);	//Base Shoulder Sphere
+				glPopMatrix();
+
+				glPushMatrix();
+					glTranslated(0, 1, 0);
+					glScalef(4, 1, 3);
+					glutSolidCube(2); //Base Body
+				glPopMatrix();
+
+				glPushMatrix();
+					glTranslatef(-2, 0, 0);
+					drawWheelnAxle();
+				glPopMatrix();
+				glPushMatrix();
+					glTranslatef(2, 0, 0);
+					drawWheelnAxle();
+				glPopMatrix();
 			glPopMatrix();
 
-			drawForearm();
-
-			drawHead();
+			drawArm();
 
 		glPopMatrix();
 	glPopMatrix();
@@ -740,6 +773,25 @@ void drawWheelnAxle(void)
 	glPopMatrix();
 }
 
+void drawArm(void) {
+	glPushMatrix();
+	//Shoulder Transformations
+	glRotatef(shoulderPitch, 0.0, 0.0, 1.0);
+	drawBicep();
+
+	//Elbow Transformations
+	glTranslatef(0.0, 12.0, 0.0);
+	glRotatef(elbowPitch, 0.0, 0.0, 1.0);
+	glPushMatrix(); //Elbow Sphere
+	glutSolidSphere(1.0, 20, 50);
+	glPopMatrix();
+
+	drawForearm();
+
+	drawHead();
+	glPopMatrix();
+}
+
 void printInstructions(void)
 {
 	printf("\n\nINSTRUCTIONS\nYou are a Battle Robot, destroy your foe, fight to the death.\n");
@@ -806,12 +858,17 @@ void foeDrive(void)
 	}
 }
 
+void fkPrinter(void)
+{
+	Matrix3D m = NewIdentity();
+	Vector3D v = NewVector3D(-7, 8.3, 0);
+	MatrixLeftMultiplyV(&m, NewTranslate(0, -12, 0));
+	MatrixLeftMultiplyV(&m, NewRotateZ(elbowPitch));
+	MatrixLeftMultiplyV(&m, NewTranslate(0, 12, 0));
+	MatrixLeftMultiplyV(&m, NewRotateZ(shoulderPitch));
 
-
-
-
-
-
-
-
-
+	VectorLeftMultiply(&v, &m);
+	heroWeaponX = v.x;
+	heroWeaponY = v.y;
+	heroWeaponZ = v.z;
+}

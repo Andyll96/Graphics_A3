@@ -6,12 +6,15 @@
 #include "Vector3D.h"
 #include "Player.h"
 
+#define PI 3.141592654
+
 Player newPlayer(char name, int x, int y, int z)
 {
 	Player player;
 	player.name = name;
 	player.health = 100;
 	player.position = NewVector3D(x, y, z);
+	player.weaponPosition = NewVector3D(x + 8, y + 8.3, 0);
 	return player;
 }
 
@@ -36,6 +39,20 @@ void baseHit(Player * player)
 void setPosition(Player * player, int x, int y, int z)
 {
 	Set(&player->position, x, y, z);
+
+	float lx = cos((player->Angle)*(PI / 180));
+	float lz = -sin((player->Angle)*(PI / 180));
+
+	if (player->name == 'h')
+	{
+		Set(&player->weaponPosition, x + (8 * lx), y + 8.3, z + 8 * lz);
+
+	}
+	else if (player->name == 'f')
+	{
+		Set(&player->weaponPosition, x + (-8 * lx), y + 8.3, z + -8 * lz);
+	}
+
 }
 
 void printPlayerData(Player * player)
@@ -64,9 +81,7 @@ void checkWinner(Player * hero, Player * foe)
 	}
 }
 
-//0 = base hit
-//2 = foe hits hero, base hit
-//3 = foe hits hero, weapon hit
+
 int collisionDetect(Player * hero, Player * foe)
 {
 	float baseFoeX = foe->position.x;
@@ -81,13 +96,31 @@ int collisionDetect(Player * hero, Player * foe)
 	float dy = baseFoeY - baseHeroY;
 	float dz = baseFoeZ - baseHeroZ;
 
+	float weaponFoeX = foe->weaponPosition.x;
+	float weaponFoeY = foe->weaponPosition.y;
+	float weaponFoeZ = foe->weaponPosition.z;
+
+	float weaponHeroX = hero->weaponPosition.x;
+	float weaponHeroY = hero->weaponPosition.y;
+	float weaponHeroZ = hero->weaponPosition.z;
+
+	float weaponDx = weaponFoeX - weaponHeroX;
+	float weaponDy = weaponFoeY - weaponHeroY;
+	float weaponDz = weaponFoeZ - weaponHeroZ;
+
 	float distance = sqrt(pow(dx, 2) + pow(dz, 2));
+	float weaponDistance = sqrt(pow(weaponDx, 2) + pow(weaponDy, 2) + pow(weaponDz, 2));
+
 	//printf("distance: %f, dy: %f\n", distance, dy);
 	//base hit
 	if (distance < 6 && dy == 0)
 	{
 		printf("Hit!!!!!!!!!!\n");
 		return 0;
+	}
+	if (weaponDistance < 3) {
+		printf("Weapon Hit!!!!!!!!!\n");
+		return 1;
 	}
 }
 

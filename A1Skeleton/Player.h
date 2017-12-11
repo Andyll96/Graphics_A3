@@ -4,7 +4,10 @@
 typedef	struct  {
 	char name;
 	int health;
+
 	Vector3D position;
+	float Angle;
+	Vector3D weaponPosition;
 } Player;
 
 Player newPlayer(char name, int x, int y, int z);
