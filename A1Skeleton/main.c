@@ -43,7 +43,6 @@ float hlx = 0.0, hlz = 0.0;
 float heroX = 0.0, heroY = 0.0, heroZ = 0.0;
 float speed = 0.1;
 float turnSpeed = 2;
-float heroWeaponX = 0.0, heroWeaponY = 0.0, heroWeaponZ = 0.0;
 
 //arm controls for both robots
 float elbowPitch = 0.0;
@@ -119,8 +118,6 @@ void drawArm(void);
 void printInstructions(void);
 
 void foeDrive(void);
-
-void fkPrinter(void);
 
 
 int main(int argc, char** argv)
@@ -277,6 +274,7 @@ void display(void)
 
 	//Hero
 	hero.Angle = heroAngle;
+	hero.elbowAngle = elbowPitch;
 	glPushMatrix();
 		setPosition(&hero, heroX - 15, heroY, heroZ);//for the heroData, including the weapon
 		glTranslatef(heroX - 15, heroY, heroZ);
@@ -284,7 +282,6 @@ void display(void)
 		glScaled(0.7, 0.7, 0.7);
 		drawHero(0.243, 0.635, 0.956);
 	glPopMatrix();
-	fkPrinter();
 	glPushMatrix();
 		glTranslatef(hero.weaponPosition.x, hero.weaponPosition.y, hero.weaponPosition.z);
 		glutWireCube(1.0);
@@ -294,6 +291,7 @@ void display(void)
 	
 	//Foe
 	foe.Angle = foeAngle;
+	foe.elbowAngle = elbowPitch;
 	glPushMatrix();
 		setPosition(&foe, 15 + foeX, foeY, foeZ);
 		glTranslated(15.0 + foeX, foeY, foeZ);
@@ -378,7 +376,6 @@ void keyboard(unsigned char key, int mx, int my)
 			heroZ += hlz * speed;
 		}
 		speed += 0.025;
-		//printf("up\n");
 		break;
 	case 's': //down
 		if (hlx == 0) {
@@ -392,16 +389,12 @@ void keyboard(unsigned char key, int mx, int my)
 			heroZ -= hlz * speed;
 		}
 		speed += 0.025;
-		//printf("down\n");
 		break;
 	case 'a': //left
 		heroAngle += turnSpeed;
 		hlx = cos((heroAngle)*(PI/180));
 		hlz = -sin((heroAngle)*(PI/180));
 
-		printf("heroAngle : %f\n", heroAngle);
-		//printf("calculated: hlx = %f hlz = %f\n", hlx, hlz);
-		//printf("actual: hlx = %f hlz = %f\n", cos(heroAngle), sin(heroAngle));
 		turnSpeed += 0.5;
 		break;
 	case 'd': //right
@@ -410,7 +403,6 @@ void keyboard(unsigned char key, int mx, int my)
 		hlz = -sin((heroAngle)*(PI / 180));
 
 		turnSpeed += 0.5;
-		//printf("hlx = %f hlz = %f\n", hlx, hlz);
 		break;
 
 	case 'c':
@@ -440,7 +432,7 @@ void keyboard(unsigned char key, int mx, int my)
 	case 'r': //because for some keyboards, the release function doesn't register
 		turnSpeed = 0;
 		speed = 0;
-		printf("emergency reset\n");
+		printf("Speed Emergency Reset\n");
 		break;
 	case 'e':
 		if (elbowPitch == 60)
@@ -484,11 +476,9 @@ void functionKeys(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT:
 		deltaXMove = -0.5f;
-		printf("Left\n");
 		break;
 	case GLUT_KEY_RIGHT:
 		deltaXMove = 0.5f;
-		printf("Right\n");
 		break;
 	}
 }
@@ -858,17 +848,3 @@ void foeDrive(void)
 	}
 }
 
-void fkPrinter(void)
-{
-	Matrix3D m = NewIdentity();
-	Vector3D v = NewVector3D(-7, 8.3, 0);
-	MatrixLeftMultiplyV(&m, NewTranslate(0, -12, 0));
-	MatrixLeftMultiplyV(&m, NewRotateZ(elbowPitch));
-	MatrixLeftMultiplyV(&m, NewTranslate(0, 12, 0));
-	MatrixLeftMultiplyV(&m, NewRotateZ(shoulderPitch));
-
-	VectorLeftMultiply(&v, &m);
-	heroWeaponX = v.x;
-	heroWeaponY = v.y;
-	heroWeaponZ = v.z;
-}

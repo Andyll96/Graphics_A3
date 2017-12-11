@@ -132,7 +132,6 @@ bool InitMeshQM(QuadMesh* qm, int meshSize, Vector3D origin, double meshLength, 
 		// go to next row in mesh (negative z direction)
 		Add(&o, &v2, &o);
 	}
-	//printf("sizeof(vertices): %d", sizeof(qm->vertices));
 	// Build Quad Polygons
 	qm->numQuads=(meshSize)*(meshSize);
 	int currentQuad=0;
@@ -290,7 +289,6 @@ void ComputeGauss(QuadMesh* qm, float height, float width) {
 		Vector3D currentHole = qm->holes[i];
 		float holeX = currentHole.x;
 		float holeZ = currentHole.z;
-		printf("currentHole(x, z): (%f, %f)\n", holeX, holeZ);
 
 		for (int j = 0; j < qm->numVertices; j++)
 		{

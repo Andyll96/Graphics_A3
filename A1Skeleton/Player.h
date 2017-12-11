@@ -7,6 +7,8 @@ typedef	struct  {
 
 	Vector3D position;
 	float Angle;
+	float elbowAngle;
+	float shoulderAngle;
 	Vector3D weaponPosition;
 } Player;
 

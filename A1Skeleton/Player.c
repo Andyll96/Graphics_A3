@@ -38,19 +38,26 @@ void baseHit(Player * player)
 
 void setPosition(Player * player, int x, int y, int z)
 {
+	//sets position of player
 	Set(&player->position, x, y, z);
 
+	//sets position of players character
+
+	//XZ plane 
 	float lx = cos((player->Angle)*(PI / 180));
 	float lz = -sin((player->Angle)*(PI / 180));
 
+	float llx = cos((player->elbowAngle)*(PI / 180));
+	float ly = sin((player->elbowAngle)*(PI / 180));
+
 	if (player->name == 'h')
 	{
-		Set(&player->weaponPosition, x + (8 * lx), y + 8.3, z + 8 * lz);
+		Set(&player->weaponPosition, x + (8 * lx) * llx, y + 8.3 + (8.3 * ly), z + 8 * lz);
 
 	}
 	else if (player->name == 'f')
 	{
-		Set(&player->weaponPosition, x + (-8 * lx), y + 8.3, z + -8 * lz);
+		Set(&player->weaponPosition, x + (-8 * lx), y + 8.3 + (8.3 * ly), z + -8 * lz);
 	}
 
 }
@@ -115,11 +122,11 @@ int collisionDetect(Player * hero, Player * foe)
 	//base hit
 	if (distance < 6 && dy == 0)
 	{
-		printf("Hit!!!!!!!!!!\n");
+		printf("\nHit!!!!!!!!!!\n");
 		return 0;
 	}
 	if (weaponDistance < 3) {
-		printf("Weapon Hit!!!!!!!!!\n");
+		printf("\nWeapon Hit!!!!!!!!!\n");
 		return 1;
 	}
 }
