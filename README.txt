@@ -1,4 +1,7 @@
 CPS511 Assignment 1 Skeleton Code
+Battle Bot Simulation
+
+Combine ideas/code from previous assignments to create a simulation of two battle bots moving around the terrain and battling each other.
 
 main.c: Contains the main() function, setups OpenGL and draws, does keyboard/mouse handling etc. This is where you should add your submarine/dirigible drawing & animation code.
 
